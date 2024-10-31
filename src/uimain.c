@@ -1,54 +1,57 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include "tokenizer.h"
+#include "history.h"
 
 /**
  * @file uimain.c
- * @brief A simple user interface for a tokenizer.
+ * A simple user interface for a tokenizer.
  * 
- * Author: Blaine Wever
- * Last Edit: Oct 8, 2024
+ * Author: Blaine
+ * Last Edit: Oct 30, 2024
  */
 
-/**
- * @brief is_Exit: Checks if the given string is equal to "exit".
- * 
- * @param str A pointer to the input string to be compared.
- * @return 1 if the input string is "exit", else return 0.
- */
-int is_Exit(const char *str);
-
-/**
- * @brief Main function: Initializes the user interface
- *
- * This function handles the input and outputs between the user and the program.
- * The interface prompts the user indicated by a '$' and echoes the input back to user.
- * The interface will end if the user inputs "exit".
- * 
- * @return 0 on successful termination of program.
- */
+/** Main function: Initializes the user interface */
 int main () {
+
+    // Initialize history linked list
+    List *history = init_history();
+
     char userInput[100];
     while (1) {
-        printf("$ ");
+        // Receive input from user
+        printf("> ");
         fgets(userInput, sizeof(userInput), stdin);
-        printf("%s", userInput);
+        userInput[strcspn(userInput, "\n")] = 0;
 
-        if (is_Exit(userInput) == 1) {
+        // Check if input is 'exit' command
+        if (strcmp(userInput, "exit") == 0) {
             break;
         }
-    }
-    return 0;
-}
 
-int is_Exit (const char *str) {
-    const char *exit_str = "exit";
-    int i = 0;
+        /* Check if input is a command ('!' followed by a digit) 
+           If so, print history based on id inputed by user
+        */
+        if (userInput[0] == '!' && isdigit(userInput[1])) {
+            int id = atoi(userInput + 1); // Atoi gets the entire num and cleans it. (use a for loop if not using atoi)
+            char *recall = get_history(history, id);
 
-    while (exit_str[i] != '\0' && str[i] != '\0'){
-        if (str[i] != exit_str[i]) {
-            return 0; // return 0 if str is not "exit"
+            // Checks if there is a history at id to print
+            if (recall) {
+                printf("%s", recall);
+            } else {
+                printf("No histroy found");
+            }
         }
-        i++;
+        // If not a command then record input into history
+        else {
+            add_history(history, userInput);
+            printf("%s", userInput);
+        }
     }
-    // return 1 if str is "exit"
-    return 1;
+
+    free_history(history); // Free history when program ends
+    return 0;
 }

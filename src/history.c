@@ -4,39 +4,14 @@
 
 /**
  * @file history.c
- * @brief
+ * Implemented function for managing a history in a linked list.
  * 
- * Functions:
- * 
- * Author: Blaine Wever
- * Last Edit: Oct 27, 2024
+ * Author: Blaine
+ * Last Edit: Oct 30, 2024
  */
-
-/**
- * @brief Represents an item in a linked list.
- * 
- * This stucture stores an integer ID, a string pointer,
- * and a pointer to the next item in the list.
- */
-typedef struct s_Item {
-  int id;
-  char *str;
-  struct s_Item *next;
-} Item;
-
-/**
- * @brief Represents a linked list. 
- * 
- * This structure holds a pointer to the root item of the list. 
- */
-typedef struct s_List {
-  struct s_Item *root;
-} List;
 
 /** Initialize the linked list to keep a history. */
 List* init_history() {
-
-    // Dynamically allocate memory with size List
     List *history = (List*)malloc(sizeof(List));
 
     // Set root to Null since no Node has been created yet
@@ -45,37 +20,37 @@ List* init_history() {
     return history; // returns list structure
 }
 
-/**  
- * @brief Adds a history item to the end of the list.
- * 
- * @param List* list - the linked list (the root)
- * @param char* str - the string to store
-*/
 void add_history(List *list, char *str) {
+    if (!list) return;
 
-    // Create an item
-    Item *newItem = (Item*)malloc(sizeof(Item));
-    newItem -> str = str;
-    newItem -> next = NULL;
+    // Tokenize the input string
+    char **tokens = tokenize(str);  // tokens array from tokenizer
 
-    // Check if list is empty
-    if (list -> root == NULL) {
-      // If empty, set newItem as root and assign its id as 0
-      newItem -> id = 0;
-      list -> root = newItem;
-      return;
+    // Allocate memory for the new item
+    Item *new_item = (Item*)malloc(sizeof(Item));
+    if (!new_item) return;
+
+    // Store the original string and tokens in new_item
+    int len = 0;
+    while (str[len] != '\0') len++;  // Calculate length of input string
+    new_item->str = (char*)malloc(len + 1);
+    if (!new_item->str) {
+        free(new_item);
+        return;
+    }
+    for (int i = 0; i <= len; i++) {
+        new_item->str[i] = str[i];
     }
 
-    // Traverse to end of list
-    Item *current = list -> root; 
-    while (current -> next != NULL) {
-      current = current -> next;
-    }
-    
-    // Add newItem to end of list and assign its id
-    newItem -> id = current -> id + 1;
-    current -> next = newItem;
+    // Set the ID and link the new item to the list
+    new_item->id = (list->root) ? list->root->id + 1 : 0;
+    new_item->next = list->root;
+    list->root = new_item;
+
+    // Free tokens after use, as they are no longer needed here
+    free_tokens(tokens);
 }
+
 
 /** Retrieve the string stored in the node where Item->id == id.
    List* list - the linked list
@@ -102,7 +77,7 @@ void print_history(List *list) {
   Item *current = list -> root;
   while (current != NULL) {
     printf("ID = %d\n", current -> id);
-    printf("Str = %d\n", current -> str);
+    printf("Str = %s\n", current -> str);
     printf("|\n|\nv\n");
   }
 }
@@ -115,14 +90,14 @@ void free_history(List *list) {
   }
 
   // Temporary pointers to help traverse
-  Item *current = list ->root;
+  Item *current = list -> root;
   Item *next;
 
 // Traverse through list while freeing memory
   while (current != NULL) {
     next = current -> next;
-    free(current -> id);
     free(current -> str);
+    free(current);
     current = next;
   }
 
