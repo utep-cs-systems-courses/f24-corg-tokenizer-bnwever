@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include "tokenizer.h"
 #include "history.h"
 
@@ -13,42 +11,80 @@
  * Last Edit: Oct 30, 2024
  */
 
-/** Main function: Initializes the user interface */
-int main () {
+/** Custom implementation of strcmp */
+int strCompare(const char *str1, const char *str2) {
+    while (*str1 && (*str1 == *str2)) {
+        str1++;
+        str2++;
+    }
+    return *(unsigned char *)str1 - *(unsigned char *)str2;
+}
 
+/** Custom implementation of strcspn */
+size_t strcspn(const char *str, const char *reject) {
+    const char *p;
+    const char *r;
+
+    for (p = str; *p != '\0'; p++) {
+        for (r = reject; *r != '\0'; r++) {
+            if (*p == *r) {
+                return p - str;
+            }
+        }
+    }
+    return p - str;
+}
+
+/** Custom implementation of isdigit */
+int isdigit(char c) {
+    return (c >= '0' && c <= '9');
+}
+
+/** Custom implementation of atoi */
+int atoi(const char *str) {
+    int result = 0;
+    while (isdigit(*str)) {
+        result = result * 10 + (*str - '0');
+        str++;
+    }
+    return result;
+}
+
+/** Main function: Initializes the user interface */
+int main() {
     // Initialize history linked list
     List *history = init_history();
 
     char userInput[100];
     while (1) {
         // Receive input from user
-        printf("> ");
+        printf("\n> ");
         fgets(userInput, sizeof(userInput), stdin);
-        userInput[strcspn(userInput, "\n")] = 0;
+        userInput[strcspn(userInput, "\n")] = 0; // Remove newline
 
         // Check if input is 'exit' command
-        if (strcmp(userInput, "exit") == 0) {
+        if (strCompare(userInput, "exit") == 0) {
             break;
         }
 
         /* Check if input is a command ('!' followed by a digit) 
-           If so, print history based on id inputed by user
+           If so, print history based on id inputted by user
         */
         if (userInput[0] == '!' && isdigit(userInput[1])) {
-            int id = atoi(userInput + 1); // Atoi gets the entire num and cleans it. (use a for loop if not using atoi)
+            int id = atoi(userInput + 1); // Convert digits after '!' to integer
             char *recall = get_history(history, id);
 
             // Checks if there is a history at id to print
             if (recall) {
-                printf("%s", recall);
+                printf("%s\n", recall);
             } else {
-                printf("No histroy found");
+                printf("No history found\n");
             }
         }
         // If not a command then record input into history
         else {
             add_history(history, userInput);
-            printf("%s", userInput);
+            printf("%s\n", userInput);
         }
     }
 
