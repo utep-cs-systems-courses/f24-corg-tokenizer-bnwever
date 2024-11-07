@@ -1,13 +1,6 @@
 #ifndef _HISTORY_
 #define _HISTORY_
 
-/**
- * @file history.h
- * A header file for the history module
- * 
- * Last Edit: Oct 30, 2024
- */
-
 typedef struct s_Item {
   int id;
   char *str;

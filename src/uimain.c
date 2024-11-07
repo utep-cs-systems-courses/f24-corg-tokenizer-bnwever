@@ -3,91 +3,96 @@
 #include "tokenizer.h"
 #include "history.h"
 
-/**
- * @file uimain.c
- * A simple user interface for a tokenizer.
- * 
- * Author: Blaine
- * Last Edit: Oct 30, 2024
+/** 
+ * Check if input is equal to "exit" 
+ * 0-3 if not, 4 if equal to exit
  */
+int isExit(char *str) {
+    int i = 0;
+    char *strExit = "exit";
 
-/** Custom implementation of strcmp */
-int strCompare(const char *str1, const char *str2) {
-    while (*str1 && (*str1 == *str2)) {
-        str1++;
-        str2++;
-    }
-    return *(unsigned char *)str1 - *(unsigned char *)str2;
-}
+    // Traverse and compare each char in userInput and 'exit'
+        while (str[i] != '\0' && strExit[i] != '\0') {
 
-/** Custom implementation of strcspn */
-size_t strcspn(const char *str, const char *reject) {
-    const char *p;
-    const char *r;
-
-    for (p = str; *p != '\0'; p++) {
-        for (r = reject; *r != '\0'; r++) {
-            if (*p == *r) {
-                return p - str;
-            }
+        // Checks if chars are not equal
+        if (str[i] != strExit[i]){
+            return i; 
         }
+
+        i++;
     }
-    return p - str;
+    return i;
 }
 
-/** Custom implementation of isdigit */
-int isdigit(char c) {
-    return (c >= '0' && c <= '9');
+/** 
+ * Checks if a char is a digit 
+ * return 1 if true 0 if false
+*/
+int isDigit(char c) {
+    return c >= '0' && c <= '9';
 }
 
-/** Custom implementation of atoi */
-int atoi(const char *str) {
-    int result = 0;
-    while (isdigit(*str)) {
-        result = result * 10 + (*str - '0');
+int getDigit(const char *str) {
+    int res = 0;
+    while (isDigit(*str)) {
+        res = res * 10 + (*str - '0');
         str++;
     }
-    return result;
+    return res;
 }
 
-/** Main function: Initializes the user interface */
 int main() {
-    // Initialize history linked list
-    List *history = init_history();
 
-    char userInput[100];
-    while (1) {
-        // Receive input from user
+    // Initialize history
+    List *hist = init_history();
+
+    // char to hold user's input
+    char usrInp[128];
+
+    // Loop to keep program running as many times as needed
+    while  (1) {
+
+        // Receive the input from user
         printf("\n> ");
-        fgets(userInput, sizeof(userInput), stdin);
-        userInput[strcspn(userInput, "\n")] = 0; // Remove newline
+        fgets(usrInp, sizeof(usrInp), stdin);
 
-        // Check if input is 'exit' command
-        if (strCompare(userInput, "exit") == 0) {
-            break;
+        // remove newline from user input
+        int j = 0;
+        while (usrInp[j] != '\0') {
+            if (usrInp[j] == '\n') {
+                usrInp[j] = '\0';
+                break;
+            }
+            j++;
         }
 
-        /* Check if input is a command ('!' followed by a digit) 
-           If so, print history based on id inputted by user
-        */
-        if (userInput[0] == '!' && isdigit(userInput[1])) {
-            int id = atoi(userInput + 1); // Convert digits after '!' to integer
-            char *recall = get_history(history, id);
+        // End program if userInput is "exit"
+        if (isExit(usrInp) == 4) break;
+        
 
-            // Checks if there is a history at id to print
-            if (recall) {
-                printf("%s\n", recall);
+        // Check if input is a command ('!' followed by a digit)
+        if (usrInp[0] == '!' && isDigit(usrInp[1])){
+
+            int id = getDigit(usrInp + 1);
+            char *idHist = get_history(hist, id);
+
+            // Check if there was a found history
+            if (idHist) {
+                printf("%s\n", idHist); // print history
             } else {
-                printf("No history found\n");
+                printf("No history was found.\n");
             }
         }
-        // If not a command then record input into history
+
+        // If not 'exit' or a command, add string to history
         else {
-            add_history(history, userInput);
-            printf("%s\n", userInput);
+            add_history(hist, usrInp);
+            printf("%s\n", usrInp);
         }
+
     }
 
-    free_history(history); // Free history when program ends
+    // Free memory when program ends
+    free_history(hist);
     return 0;
 }

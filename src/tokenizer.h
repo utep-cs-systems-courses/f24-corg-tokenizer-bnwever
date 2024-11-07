@@ -1,13 +1,6 @@
 #ifndef _TOKENIZER_
 #define _TOKENIZER_
 
-/**
- * @file tokenizer.h
- * A header file for the tokenizer module
- * 
- * Last Edit: Oct 30, 2024
- */
-
 int space_char(char c);
 
 int non_space_char(char c);
